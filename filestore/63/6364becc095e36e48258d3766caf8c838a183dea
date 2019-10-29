@@ -1,0 +1,913 @@
+/**
+ * This file contains redux actions and actions creators handling the sesssion of the user.
+ */
+import axios from 'axios';
+import { browserHistory } from 'react-router';
+// import i18next from '../i18n';
+import fileSaver from 'file-saver';
+
+import { error as notifError } from 'react-notification-system-redux';
+import {FormId_Participation,CLIENT_ID} from '../config'
+import { logError, getHashUrlParameterByName, isEmpty } from '../utils';
+import { DEBUG, API_BASE_URL, DEFAULT_REQUEST_TIMEOUT, LANGUAGE_LIST } from '../config.js';
+
+
+export const INIT_ENDED = 'INIT_ENDED';
+
+export const GET_NOTIFICATIONS = 'GET_NOTIFICATIONS';
+export const GET_NOTIFICATIONS_ALL = 'GET_NOTIFICATIONS_ALL';
+export const UPDATE_NOTIFICATIONS_ALL = 'UPDATE_NOTIFICATIONS_ALL';
+
+export const SET_SESSION_DATA = 'SET_SESSION_DATA';
+export const SET_USER_RIGHT = 'SET_USER_RIGHT';
+export const LOGOUT = 'LOGOUT';
+
+export const CREATE_BLANK_AXIOS_INSTANCE = 'CREATE_BLANK_AXIOS_INSTANCE';
+export const CREATE_AXIOS_INSTANCE = 'CREATE_AXIOS_INSTANCE';
+export const RESET_AXIOS_INSTANCE = 'RESET_AXIOS_INSTANCE';
+
+export const REGISTER = 'REGISTER';
+export const REGISTER_REQUEST = 'REGISTER_REQUEST';
+export const REGISTER_FAILURE = 'REGISTER_FAILURE';
+export const REGISTER_SUCCESS = 'REGISTER_SUCCESS';
+export const SHOW_ITEMDETAILS = 'SHOW_ITEMDETAILS';
+export const SHOW_LIST = 'SHOW_LIST';
+export const ARTICLE_LIST = 'ARTICLE_LIST';
+export const BLOC_LIST = 'BLOC_LIST';
+export const UPDATE_BLOC_LIST = 'UPDATE_BLOC_LIST';
+export const UPDATE_PUB_LIST = 'UPDATE_PUB_LIST';
+export const RAISON_LIST = 'RAISON_LIST';
+export const PARTENAIRES_LIST = 'PARTENAIRES_LIST';
+export const ARTICLE_DETAILS = 'ARTICLE_DETAILS';
+export const PUB_DETAILS = 'PUB_DETAILS';
+export const JOB_LIST = 'JOB_LIST';
+export const JOB_DETAILS = 'JOB_DETAILS';
+// export const GET_FORM    = 'GET_FORM';
+// export const SUBMIT_FORM = 'SUBMIT_FORM';
+// export const CREATE_FORM_ENTRIE = 'CREATE_FORM_ENTRIE';
+
+export const GET_FORM_SUCCESS='GET_FORM_SUCCESS';
+export const GET_FORM    = 'GET_FORM';
+export const GET_FORM_FAILURE='GET_FORM_FAILURE';
+
+export const SUBMIT_FORM_SUCCESS = 'SUBMIT_FORM_SUCCESS';
+export const SUBMIT_FORM = 'SUBMIT_FORM';
+export const SUBMIT_FORM_FAILURE = 'SUBMIT_FORM_FAILURE';
+
+
+export const CREATE_FORM_ENTRIE_SUCCESS = 'CREATE_FORM_ENTRIE_SUCCESS';
+export const CREATE_FORM_ENTRIE = 'CREATE_FORM_ENTRIE';
+export const CREATE_FORM_ENTRIE_FAILURE = 'CREATE_FORM_ENTRIE_FAILURE';
+// import XLSX from 'xlsx';
+
+
+
+export function initSession(urlWithToken){
+
+  return ((dispatch, getState) => {
+
+    let token = getTokenFromStorage();
+    let userId = getUserIdFromStorage();
+
+    if(token && userId) {
+
+      // We must check token validity here by throwing a request
+      // then we can decide to store the token and directly display logged homepage to the user
+
+      axios.get(
+        `${API_BASE_URL}/en/profiles/account/${token.access_token}/view/`,
+        {
+          timeout: DEFAULT_REQUEST_TIMEOUT,
+          headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      .then((response) => { // token is valid
+        console.log("response testing stored token :", response);
+        dispatch({
+         type: SET_SESSION_DATA,
+          userId: response.data.id,
+          picture: response.data.photo,
+          adminRoles: response.data.profileadminroles,
+          first_name: response.data.first_name,
+          last_name: response.data.last_name,
+        });
+      })
+      .catch( error => {
+        console.log("error testing stored token :", error)
+        dispatch(resetUserSession());
+      })
+      .then(() => {
+        dispatch(createAxiosInstance(token, CREATE_AXIOS_INSTANCE));
+        dispatch(createAxiosInstance(null, CREATE_BLANK_AXIOS_INSTANCE));
+
+        dispatch({ type: INIT_ENDED })
+      });
+      axios.get(
+        `${API_BASE_URL}/en/forms/${FormId_Participation}/is-admin/test/?client=${CLIENT_ID}`,
+        {
+          timeout: DEFAULT_REQUEST_TIMEOUT,
+          headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      .then((response)=>{
+           dispatch({
+             type:'SET_ROLES',
+             payload:response.data
+           })
+      })  
+
+    } else if(urlWithToken.hash.trim() !== '') {
+      // parse url to find token
+      const token = {
+        access_token: getHashUrlParameterByName('access_token', urlWithToken.hash),
+        expires_in: getHashUrlParameterByName('expires_in', urlWithToken.hash),
+        token_type: getHashUrlParameterByName('token_type', urlWithToken.hash),
+        scope: getHashUrlParameterByName('scope', urlWithToken.hash),
+        state: getHashUrlParameterByName('state', urlWithToken.hash),
+      }
+
+      // We must check token validity here by throwing a request
+      // then we can decide to store the token and directly display logged homepage to the user
+
+      axios.get(
+        `${API_BASE_URL}/en/profiles/account/${token.access_token}/view/`,
+        {
+          timeout: DEFAULT_REQUEST_TIMEOUT,
+          headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      .then((response) => { // token is valid
+        console.log("response getting userId with token :", response)
+        setTokenToStorage(token);
+        setUserIdToStorage(response.data.id);
+
+        dispatch({
+       type: SET_SESSION_DATA,
+          userId: response.data.id,
+          picture: response.data.photo,
+          adminRoles: response.data.profileadminroles,
+          first_name: response.data.first_name,
+          last_name: response.data.last_name,
+        });
+
+        if(token.state) {
+          browserHistory.push(token.state); // will be executed at the end of the function
+        }
+      })
+      .catch( error => {
+        console.log("error getting userId with token :", error)
+        dispatch(resetUserSession());
+      })
+      .then(() => {
+        dispatch(createAxiosInstance(token, CREATE_AXIOS_INSTANCE));
+        dispatch(createAxiosInstance(null, CREATE_BLANK_AXIOS_INSTANCE));
+        dispatch({ type: INIT_ENDED });
+      });
+
+      axios.get(
+        `${API_BASE_URL}/en/forms/${FormId_Participation}/is-admin/test/?client=${CLIENT_ID}`,
+        {
+          timeout: DEFAULT_REQUEST_TIMEOUT,
+          headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      .then((response)=>{
+        dispatch({
+          type:'SET_ROLES',
+          payload:response.data
+        })
+      })
+    } else { // we make sure there is no token nor axios instance in the state that we can use
+      dispatch(resetUserSession());
+      dispatch(createAxiosInstance(null, CREATE_BLANK_AXIOS_INSTANCE));
+      dispatch({ type: INIT_ENDED })
+    }
+  });
+
+}
+
+
+function createAxiosInstance(token, action) {
+
+  return ((dispatch, getState) => {
+
+    let instance;
+    if(token) {
+      instance = axios.create({
+        baseURL: API_BASE_URL + '/fr',
+        timeout: DEFAULT_REQUEST_TIMEOUT,
+        headers: {
+          'Authorization': 'Bearer ' + token.access_token,
+        }
+      });
+    } else {
+      instance = axios.create({
+        baseURL: API_BASE_URL + '/fr',
+        timeout: DEFAULT_REQUEST_TIMEOUT,
+      });
+    }
+
+    dispatch({ type: action, payload: instance });
+  });
+}
+
+// logout equivalent
+export function resetUserSession(callbackAfter){
+
+  return ((dispatch, getState) => {
+
+    setTokenToStorage(null);
+    setUserIdToStorage(null);
+    dispatch({ type: RESET_AXIOS_INSTANCE })
+    dispatch({ type: LOGOUT })
+    console.log("User Session Reset !")
+    if(callbackAfter) {
+      callbackAfter();
+    }
+  })
+}
+
+function getTokenFromStorage(){
+
+  let token;
+
+  try {
+    token = JSON.parse(localStorage.getItem('sessionToken')) || undefined;
+    console.log("getTokenFromStorage : ", token);
+  } catch (e) {
+    console.log("Unvalid stored Token : ", e);
+  } finally {
+
+    if(!token || token === '') {//if there is no token, dont bother
+      return null;
+    }
+  }
+
+  return token;
+}
+
+function setTokenToStorage(token) {
+
+  try {
+    if (token) {
+      localStorage.setItem('sessionToken', JSON.stringify(token));
+    } else {
+      localStorage.removeItem('sessionToken');
+    }
+  } catch(e) {
+    console.log("Unable to access local storage : ", e);
+  }
+}
+
+function getUserIdFromStorage(){
+
+  let userId;
+
+  try {
+    userId = JSON.parse(localStorage.getItem('sessionUserId')) || undefined;
+    console.log("getUserIdFromStorage : ", userId);
+  } catch (e){
+    console.log("Unvalid stored userId : ", e);
+  } finally {
+
+    if(!userId || userId === '') {//if there is no token, dont bother
+      return null;
+    }
+  }
+
+  return userId;
+}
+
+function setUserIdToStorage(userId) {
+
+  try {
+    if (userId) {
+      localStorage.setItem('sessionUserId', JSON.stringify(userId));
+    } else {
+      localStorage.removeItem('sessionUserId');
+    }
+  } catch(e) {
+    console.log("Unable to access local storage : ", e);
+  }
+}
+
+export function getItem(url, itemType, callback) {
+
+  return (dispatch, getState) => {
+    dispatch({type:`HANDLE_${itemType}`});
+    const instance = getState().user.axiosInstance;
+
+    instance.get(url)
+    .then((response) => {
+      console.log('getItem response : ', itemType, response)
+      dispatch({ type: itemType, payload: response.data })
+    })
+    .catch((error) => {
+      console.log("getItem error : ", itemType, error);
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+
+export function patchItem(url, data, responseCallback, errorCallback) {
+
+  return (dispatch, getState) => {
+
+    const instance = getState().user.axiosInstance;
+
+    instance.patch(url, data)
+    .then((response) => {
+      console.log('patchItem response : ', url, response);
+      if(responseCallback) {
+        responseCallback();
+      }
+    })
+    .catch((error) => {
+      console.log('patchItem error : ', url, error);
+      if(errorCallback) {
+        errorCallback();
+      }
+    })
+  }
+}
+
+export function createFormEntrie(requestTarget, data,requestTarget2,form_id,client_id, submit_form_data){
+  return(dispatch, getState)=>{
+    let instance=getState().user.blankAxiosInstance;
+    
+    instance.post('forms/'+form_id+'/entries/add/?client='+client_id, data)
+    .then((response)=>{
+      if (response.status!==201 && response.status !==200) {
+        console.log("Create Form entrie", requestTarget, response);
+        dispatch({type :`${requestTarget}_FAILURE`, payload: response.data});
+        window.scrollTo(0, 0);
+        
+      }
+      else{
+        dispatch({type :`${requestTarget}_SUCCESS`, payload: response.data});
+        console.log(response.data);
+
+        /**/
+        instance.post('forms/'+form_id+'/fields/entries/'+response.data.id+'/add/?client='+client_id,submit_form_data)
+        .then((response)=>{
+          if (response.status!==201 && response.status !==200) {
+            console.log("Add entrie field", requestTarget2, response);
+            dispatch({type :`${requestTarget2}_FAILURE`, payload: response.data});
+            window.scrollTo(0, 0);
+          }
+          else{
+            console.log("Create Form success", requestTarget2, response.data);
+            dispatch({type :`${requestTarget2}_SUCCESS`, payload: response.data});
+             window.scrollTo(0, 0);
+          }
+        }).catch(error=>{
+          console.log("Create Form", requestTarget2, error, submit_form_data);
+        if (error.response && error.response.data) {
+            dispatch({ type: `${requestTarget2}_FAILURE`, payload: error.response.data });
+                      window.scrollTo(0, 0)
+          }else{
+            dispatch({ type: `${requestTarget2}_FAILURE`, payload: error });
+                      window.scrollTo(0, 0);
+          }
+        })
+        /**/
+      }
+    }).catch(error=>{
+      console.log("Create Form entrie", requestTarget, error)
+    if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      }else{
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+  }
+}
+export function showItemDetails(url) {
+    
+  return (dispatch, getState) => {
+    let instance = getState().user.axiosInstance;
+
+    instance.get(url)
+    .then((response) => {
+      dispatch({ type: SHOW_ITEMDETAILS, payload: response.data })
+    })
+    .catch(function (error) {
+      console.log("error showItemDetails", url, error);
+    });
+  }
+}
+export function createFormEntryAnonymous(requestTarget, data,requestTarget2,form_id,client_id, submit_form_data){
+  return(dispatch, getState)=>{
+    let instance=getState().user.blankAxiosInstance;
+    
+    instance.post('forms/'+form_id+'/entries/add/?client='+client_id, data)
+    .then((response)=>{
+      if (response.status!==201 && response.status !==200) {
+        console.log("Create Form entry", requestTarget, response);
+        dispatch({type :`${requestTarget}_FAILURE`, payload: response.data});
+        window.scrollTo(0, 0);
+        
+      }
+      else{
+        dispatch({type :`${requestTarget}_SUCCESS`, payload: response.data});
+        console.log(response.data);
+
+        /**/
+        instance.post('forms/'+form_id+'/fields/entries/'+response.data.id+'/add/?client='+client_id,submit_form_data)
+        .then((response)=>{
+          if (response.status!==201 && response.status !==200) {
+            console.log("Add entry field", requestTarget2, response);
+            dispatch({type :`${requestTarget2}_FAILURE`, payload: response.data});
+            window.scrollTo(0, 0);
+          }
+          else{
+            console.log("Create Form success", requestTarget2, response.data);
+            dispatch({type :`${requestTarget2}_SUCCESS`, payload: response.data});
+             window.scrollTo(0, 0);
+          }
+        }).catch(error=>{
+          console.log("Create Form", requestTarget2, error, submit_form_data);
+        if (error.response && error.response.data) {
+            dispatch({ type: `${requestTarget2}_FAILURE`, payload: error.response.data });
+                      window.scrollTo(0, 0)
+          }else{
+            dispatch({ type: `${requestTarget2}_FAILURE`, payload: error });
+                      window.scrollTo(0, 0);
+          }
+        })
+        /**/
+      }
+    }).catch(error=>{
+      console.log("Create Form entry", requestTarget, error)
+    if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      }else{
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+  }
+}
+export function createFormEntry(requestTarget, data,requestTarget2,form_id,client_id, submit_form_data){
+  return(dispatch, getState)=>{
+    let instance=getState().user.axiosInstance;
+    
+    instance.post('forms/'+form_id+'/entries/add/?client='+client_id, data)
+    .then((response)=>{
+      if (response.status!==201 && response.status !==200) {
+        console.log("Create Form entry", requestTarget, response);
+        dispatch({type :`${requestTarget}_FAILURE`, payload: response.data});
+        window.scrollTo(0, 0);
+        
+      }
+      else{
+        dispatch({type :`${requestTarget}_SUCCESS`, payload: response.data});
+        console.log(response.data);
+
+        /**/
+        instance.post('forms/'+form_id+'/fields/entries/'+response.data.id+'/add/?client='+client_id,submit_form_data)
+        .then((response)=>{
+          if (response.status!==201 && response.status !==200) {
+            console.log("Add entry field", requestTarget2, response);
+            dispatch({type :`${requestTarget2}_FAILURE`, payload: response.data});
+            window.scrollTo(0, 0);
+          }
+          else{
+            console.log("Create Form success", requestTarget2, response.data);
+            dispatch({type :`${requestTarget2}_SUCCESS`, payload: response.data});
+             window.scrollTo(0, 0);
+          }
+        }).catch(error=>{
+          console.log("Create Form", requestTarget2, error, submit_form_data);
+        if (error.response && error.response.data) {
+            dispatch({ type: `${requestTarget2}_FAILURE`, payload: error.response.data });
+                      window.scrollTo(0, 0)
+          }else{
+            dispatch({ type: `${requestTarget2}_FAILURE`, payload: error });
+                      window.scrollTo(0, 0);
+          }
+        })
+        /**/
+      }
+    }).catch(error=>{
+      console.log("Create Form entry", requestTarget, error)
+    if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      }else{
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+  }
+}
+export function Empty(itemType){
+  return (dispatch, getState) => {
+    dispatch({type:itemType})
+  }
+}
+export function ShowList(url) {
+    
+  return (dispatch, getState) => {
+    let instance = getState().user.blankAxiosInstance;
+
+    instance.get(url)
+    .then((response) => {
+      dispatch({ type: SHOW_LIST, payload: response.data })
+    })
+    .catch(function (error) {
+      console.log("error ShowList", url, error);
+    });
+  }
+}
+export function getItemAnonymous(url, itemType, callback) {
+
+  return (dispatch, getState) => {
+
+    const instance = getState().user.blankAxiosInstance;
+
+    instance.get(url)
+    .then((response) => {
+      console.log('getItemAnonymous response : ', itemType, response)
+      dispatch({ type: itemType, payload: response.data })
+    })
+    .catch(error=>{
+      console.log("Create Form entry", itemType, error)
+    if (error.response && error.response.data) {
+        dispatch({ type: `${itemType}_FAILURE`, payload: error.response.data })
+      }else{
+        dispatch({ type: `${itemType}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+export function updateAPILanguage(newLang) {
+
+  return ((dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+    let blankInstance = getState().user.blankAxiosInstance;
+
+    if(instance) {
+      instance.defaults.baseURL = API_BASE_URL + '/' + newLang;
+      dispatch({ type: CREATE_AXIOS_INSTANCE, payload: instance });
+    }
+
+    if(blankInstance) {
+      blankInstance.defaults.baseURL = API_BASE_URL + '/' + newLang;
+       console.log("test langue:" ,blankInstance.defaults.baseURL )
+      dispatch({ type: CREATE_BLANK_AXIOS_INSTANCE, payload: blankInstance });
+
+    }
+  })
+}
+
+
+
+export function removeItem(url, itemType, callback) {
+
+  return (dispatch, getState) => {
+
+    const instance = getState().user.axiosInstance;
+
+    instance.put(url)
+    .then((response) => {
+      console.log("removeItem response : ", itemType, response);
+      dispatch({ type: itemType })
+    })
+    .catch((error) => {
+      console.log("removeItem error : ", itemType, error);
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+// export function deleteForm(url, itemType, callback) {
+
+//   return (dispatch, getState) => {
+
+//     const instance = getState().user.axiosInstance;
+
+//     instance.delete(url)
+//     .then((response) => {
+//       console.log("deleteForm response : ", itemType, response);
+//       dispatch({ type: itemType })
+//     })
+//     .catch((error) => {
+//       console.log("deleteForm error : ", itemType, error);
+//     })
+//     .then(() => {
+//       if(callback) {
+//         callback();
+//       }
+//     });
+//   }
+// }
+
+
+export function getForm(url, requestTarget, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+
+    instance.get(url)
+    .then((response) => {
+      console.log("getForm response", requestTarget, response);
+      dispatch({ type: requestTarget, payload: response.data });
+    })
+    .catch(error => {
+      console.log("getForm error", requestTarget, error);
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+export function addForm(url, requestTarget, data, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+
+    dispatch({ type: `${requestTarget}_REQUEST` });
+
+    instance.post(url, data)
+    .then((response) => {
+      console.log("addForm response", requestTarget, response)
+      if(response.status !== 201 && response.status !== 200){
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: response.data });
+
+      } else {
+        dispatch({ type: `${requestTarget}_SUCCESS` });
+      }
+    })
+    .catch(error => {
+      console.log("addForm error", requestTarget, error)
+      if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      } else {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+// export function getProjectsXls(url, title, requestTarget, data){
+//   return(dispatch, getState)=>{
+//     let instance=getState().user.axiosInstance;
+//     instance.post(url,data,{ responseType: 'arraybuffer' })
+//     .then((response)=>{
+//       console.log("getProjectsXls", requestTarget, response, data);
+//         const workbook = XLSX.read(response.data, { bookType: 'csv', type: 'buffer'});
+//         const url=window.URL.createObjectURL(workbook);
+//         console.log(workbook);
+//         // var blob = new Blob([response.data], { type: 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'});
+//         // fileSaver.saveAs(workbook, title);
+//         dispatch({type :`${requestTarget}_SUCCESS`, payload: response.data});
+//     }).catch(error=>{
+//       console.log("getProjectsXls", requestTarget, error, data);
+//     if (error.response && error.response.data) {
+//         dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+//       }else{
+//         dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+//       }
+//     })
+//   }
+// }
+export function getProjectsXls(url, title, requestTarget, data){
+  return(dispatch, getState)=>{
+    let instance=getState().user.axiosInstance;
+    instance.post(url,data,{ responseType: 'arraybuffer' })
+    .then((response)=>{
+      console.log("getProjectsXls", requestTarget, response, data);
+        var blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        fileSaver.saveAs(blob, title);
+        dispatch({type :`${requestTarget}_SUCCESS`, payload: response.data});
+    }).catch(error=>{
+      console.log("getProjectsXls", requestTarget, error, data);
+    if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      }else{
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+  }
+}
+// export function getProjectsXls(url, title, requestTarget, data){
+//   return(dispatch, getState)=>{
+//     let instance=getState().user.axiosInstance;
+//     instance.post(url,data,{ responseType: 'arraybuffer' })
+//     .then((response)=>{
+//       console.log("getProjectsXls", requestTarget, response, data);
+//         var blob = new Blob([response.data], { type:'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'});
+//         fileSaver.saveAs(blob, title);
+//         dispatch({type :`${requestTarget}_SUCCESS`, payload: response.data});
+//     }).catch(error=>{
+//       console.log("getProjectsXls", requestTarget, error, data);
+//     if (error.response && error.response.data) {
+//         dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+//       }else{
+//         dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+//       }
+//     })
+//   }
+// }
+export function postItem(url, requestTarget, data, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+
+    dispatch({ type: `${requestTarget}_REQUEST` });
+    dispatch({ type: `HANDLE_${requestTarget}` });
+
+    instance.post(url, data)
+    .then((response) => {
+      console.log("postItem response", requestTarget, response)
+      if(response.status !== 201 && response.status !== 200){
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: response.data});
+
+      } else {
+        dispatch({ type: `${requestTarget}_SUCCESS`, payload:response.data});
+        dispatch({ type: `${requestTarget}`, payload:response.data});
+      }
+    })
+    .catch(error => {
+      console.log("postItem error", requestTarget, error)
+      if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      } else {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+export function addFormAnonymous(url, requestTarget, data, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.blankAxiosInstance;
+
+    dispatch({ type: `${requestTarget}_REQUEST` });
+
+    instance.post(url, data)
+    .then((response) => {
+      console.log("addForm response", requestTarget, response)
+      dispatch({ type: `${requestTarget}_SUCCESS` });
+    })
+    .catch(error => {
+      console.log("addForm error", requestTarget, error)
+      if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      } else {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+
+export function updateForm(url, requestTarget, data, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+
+    dispatch({ type: `${requestTarget}_REQUEST` });
+
+    instance.put(url, data)
+    .then((response) => {
+      console.log("updateForm response", requestTarget, response)
+      if(response.status !== 200){
+        dispatch( { type: `${requestTarget}_FAILURE`, payload: response.data });
+
+      } else {
+        dispatch({ type: `${requestTarget}_SUCCESS` });
+      }
+    })
+    .catch(error => {
+      console.log("updateForm error", requestTarget, error)
+      if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      } else {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+export function patchForm(url, requestTarget, data, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+
+    dispatch({ type: `${requestTarget}_REQUEST` });
+
+    instance.patch(url, data)
+    .then((response) => {
+      console.log("patchForm response", requestTarget, response)
+      if(response.status !== 200){
+        dispatch( { type: `${requestTarget}_FAILURE`, payload: response.data });
+
+      } else {
+        dispatch({ type: `${requestTarget}_SUCCESS` });
+      }
+    })
+    .catch(error => {
+      console.log("patchForm error", requestTarget, error)
+      if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      } else {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+export function removeForm(url, requestTarget, callback){
+
+  return (dispatch, getState) => {
+
+    let instance = getState().user.axiosInstance;
+
+    dispatch({ type: `${requestTarget}_REQUEST` });
+
+    instance.put(url)
+    .then((response) => {
+      console.log("removeForm response", requestTarget, response)
+      if(response.status !== 200){
+        dispatch( { type: `${requestTarget}_FAILURE`, payload: response.data });
+
+      } else {
+        dispatch({ type: `${requestTarget}_SUCCESS` });
+      }
+    })
+    .catch(error => {
+      console.log("removeForm error", requestTarget, error)
+      if (error.response && error.response.data) {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error.response.data })
+      } else {
+        dispatch({ type: `${requestTarget}_FAILURE`, payload: error })
+      }
+    })
+    .then(() => {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}

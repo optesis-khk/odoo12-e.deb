@@ -1,0 +1,37 @@
+export var PROPERTIES={};
+export var UISCHEMA={}
+export var schema={
+  "title": "",
+  "description": "",
+  "type": "object",
+  "required": [ 
+  ],
+ "properties": {
+  }
+};
+export var formData= {
+  };
+
+export function InitialFields()
+  {
+   var FIELDS={
+        'Single line text':{widget:'', type:'string'},
+        'Multi line text':{widget:'textarea', type:'string'},
+        'Email':{widget:'email', type:'email'},
+        'Date':{widget:'alt-date', type:'date'},
+        'File upload':{widget:'file', type:'file'},
+        'Radio buttons':{widget:'radio', type:'boolean'},
+        'Drop down':{widget:'checkboxes', type:'select'},
+        'Check boxes':{widget:'checkboxes', type:'checkboxes'},
+        'Check boxe':{widget:'checkboxes', type:'checkboxes'},
+        'Number':{widget:'updown', type:'number'},
+        'Page break':{widget:'', type:'array'},
+        'URL':{widget:'', type:'string'}
+   };
+   return FIELDS;
+  }
+export const TEXTAREA_ROWS_NUMBER=5;
+export const DISABLEDFIELDS=['Email'];
+
+
+

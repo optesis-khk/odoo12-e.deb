@@ -1,0 +1,102 @@
+export const SEARCH_CONTENT=[
+	{
+		url:"/presentation-du-projet",
+		content:"Le Gouvernement du Sénégal a adopté une politique qui stimule et encourage l’accès universel aux TIC. Le prisme d’une société de connaissance conditionne des mesures réglementaires, un renforcement des ressources humaines ainsi qu’un environnement propice à l’utilisation des TIC tant par le secteur public que par le secteur privé. Dans la mise en œuvre du PSE, Le PAP inscrit le numérique comme un moteur de croissance économique. L’ambition du Gouvernement est de se doter de la plus grande plateforme régionale pour répondre à une des préoccupations des acteurs du secteur du numérique : disposer d’infrastructures de base et de facilités d’accompagnement de l’essor d’activités numériques à partir d’une ville numérique durable et d’un parc technologique numérique (PTN) qui en constitue le cœur. L’approche inclusive du Gouvernement du Sénégal est juxtaposée à la Stratégie Sénégal Numérique 2025. Elle englobe 28 réformes et 69 projets pour coût global de 1.369 milliards Le premier axe est relatif à l’accès ouvert et abordable à tous les services. Le deuxième vise à avoirune administration, des citoyens et des entreprises connectés.L’objectif du PTN est de soutenir l’industrie des TIC, permettre l’éclosion d’entreprises innovantes locales, généraliser une bonne utilisation des TIC par la promotion de l’Hygiène numérique et digitale auprès des acteurs évoluant dans chaque écosystème. La transition numérique constitue doncla pierre angulaire d’un « Sénégal de tous, un Sénégal pour tous ». Elle est la colonne vertébrale du Plan Sénégal Émergent."
+	},
+
+	{
+		url:"/missions-et-objectifs",
+		content:"Mise en place d’une infrastructure de classe mondiale pour attirer des entreprises internationales et régionales dans le secteur des TIC, de la recherche et de l’innovation"
+	},
+	{
+		url:"/actualites-et-publications",
+		content:"Hub regional de Diamniadio : 46 Milliards de F CFA pour la création d’un Parc de Technologies Numériques"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Mise en place. Mise en place d’une infrastructure de classe mondiale pour attirer des entreprises internationales et régionales dans le secteur des TIC, de la recherche et de l’innovation"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Exonération fiscale"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Création d'entreprises.Creation d'entreprises et formation des ressources humaines dans les technologies du futur"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Promotion de l'incubation. Promotion de l'incubation d'entreprises nouvelles"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Amélioration de la recherche. Amélioration de la recherche et du développement et de l'esprit d'entreprise dans le domaine des TIC"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Délocalisation d’entreprises. Délocalisation d’entreprises TIC étrangères ou captation de services à haute valeur ajoutée (BPO) augmentant l'innovation et contribuant aux revenus du gouvernement"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Promotion de l’industrie. Promotion de l’industrie du numérique innovante et créatrice de valeurs"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Impulser et soutenir l’économie. Impulser et soutenir l’économie nationale par des actions préparant la société aux révolutions numériques"
+	},
+	{
+		url:"/missions-et-objectifs",
+		content:"Création d’emplois. Création d’emplois dans les services numériques et dans tous les secteurs d’activités de l’économie"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"3 Tour : Bâtiments TIC équipés"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"Centre de production audio et multimédia"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"Centre d’incubation et d’innovation"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"Centre de recherche et développement"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"Centre de Business Process Outsourcing – BPO"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"Bâtiments administratifs et résidentiels"
+	},
+	{
+		url:"/infrastructures-du-ptn",
+		content:"Centre commercial, médical, loisir"
+	},
+	{
+		url:"/nos-partenaires",
+		content:"Nos Partenaires"
+	},
+	{
+		url:"/actualites-et-publications",
+		content:"« Promouvoir les usages innovants du numérique pour plus de productivité et de compétitivité» Abdoulaye BALDE. Pour le Ministre Abdoulaye Baldé, le déroulement du Programme Sénégal Numérique 2025, dans le cadre du Plan Sénégal Emergent peut permettre au Sénégal de devenir un acteur majeur de l’économie numérique mondiale."
+	},{
+		url:"/actualites-et-publications",
+		content:"Parc des technologies numériques (PTN)."
+	},
+	{
+		url:"h/actualites-et-publications",
+		content:"Partie intégrante du Pole Urbain de Diamniadio (PUD), le PTN a pour objectif de contribuer à la diversification et à la modernisation de l’économie, au développement du secteur privé, et à la promotion de la croissance inclusive au Sénégal, à travers"
+	},
+	{
+		url:"/actualites-et-publications-page-2",
+		content:"Les travaux du parc des technologies de Diamniadio vont bientôt démarrer. Les travaux du parc technologique de Diamniadio vont bientôt démarrer. L’annonce a été faite par Malick Ndiaye, directeur de cabinet du Ministre des postes et des télécommunications qui intervenait hier, mardi 19 avril."
+	},
+	{
+		url:"/actualites-et-publications-page-2",
+		content:"Parc de technologie numérique de Diamniadio : L’Etat à la BAD débloquent 60 milliards. 60 milliards de F Cfa sont nécessaires pour la mise en place du parc numérique de Diamniadio, a annoncé hier, mardi 16 décembre, le ministre des postes et des télécommunications Yaya Abdoul Kane qui présidait l’atelier de restitution de l’étude de faisabilité..."
+	}
+]

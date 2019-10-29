@@ -1,0 +1,136 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+        worker_connections 4096;
+        multi_accept on;
+}
+
+http {
+        include /etc/nginx/uwsgi_params;
+        uwsgi_param Host $host;
+        uwsgi_param X-Real-IP $remote_addr;
+        uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+        uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+
+# Test upstreams
+        upstream www2.wutiko.com {
+        server 172.16.32.20:3002;
+        }
+
+        upstream api2.wutiko.com {
+        server 172.16.32.20:8002;
+        }
+
+        upstream accounts2.wutiko.com {
+        server 172.16.32.20:8002;
+        }
+
+# Old Prod Upstreams
+        #upstream api-old.wutiko.com {
+        #server 172.16.32.21:8000;
+        #}
+
+        #upstream accounts-old.wutiko.com {
+        #server 172.16.32.21:8000;
+        #}
+
+        upstream exclusive.wutiko.com {
+        server 172.16.32.20:3002;
+        }
+
+# Prod upstreams
+        upstream www.wutiko.com {
+        server 172.16.32.21:3000;
+        }
+
+        upstream api.wutiko.com {
+        server 172.16.32.21:8000;
+        }
+
+        upstream accounts.wutiko.com {
+        server 172.16.32.21:8000;
+        }
+
+
+# Prod custom admin & docs upstreams
+        upstream admin-501fd639f40a.wutiko.com {
+        server 172.16.32.21:8000;
+        }
+
+        upstream docs-7361bf26a42b.wutiko.com {
+        server 172.16.32.21:8000;
+        }
+
+
+        upstream legal.wutiko.com {
+        server 172.16.32.21:8000;
+        }
+
+        upstream wuti.co {
+        server 172.16.32.21:8000;
+        }
+
+        geoip_country /usr/share/GeoIP//GeoIP.dat;
+        map $geoip_country_code $allowed_country {
+        default no;
+        SN yes;
+        NG yes;
+        FR yes;
+        }
+
+        geo $exclusions {
+                default 0;
+                #154.65.34.203  1;      # Ip test Ousmane to excluse from blocked country
+        }
+
+        #proxy_cache_path /tmp/nginx keys_zone=my_zone:20m levels=1:2 inactive=6h max_size=10g;
+        #proxy_cache_key "$scheme$request_method$host$request_uri";
+        #proxy_cache my_zone;
+        #proxy_cache_bypass  $http_cache_control;
+        #add_header X-Proxy-Cache $upstream_cache_status;
+
+        client_max_body_size 300m;
+        client_body_buffer_size 128k;
+        proxy_read_timeout 60;
+        proxy_send_timeout 60;
+        send_timeout 60;
+        proxy_buffer_size 64k;
+        proxy_buffers   4 32k;
+        proxy_busy_buffers_size 64k;
+        proxy_temp_file_write_size 64k;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        server_tokens off;
+
+        server_names_hash_bucket_size 64;
+        server_name_in_redirect off;
+
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
+        ssl_prefer_server_ciphers on;
+
+        access_log /var/log/nginx/access.log;
+        error_log /var/log/nginx/error.log;
+        access_log on;
+
+        gzip on;
+        gzip_disable "msie6";
+
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_buffers 16 8k;
+        gzip_http_version 1.1;
+        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+        include /etc/nginx/conf.d/*.conf;
+        include /etc/nginx/sites-enabled/*;
+}

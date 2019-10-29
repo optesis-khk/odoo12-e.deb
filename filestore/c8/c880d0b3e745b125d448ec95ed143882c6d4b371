@@ -1,0 +1,35 @@
+#FROM python:3.6
+FROM python:3.7-alpine
+
+RUN apk add --no-cache --virtual build-deps gcc musl-dev \
+	python3-dev \
+	postgresql-dev \
+	bash \
+	uwsgi-python3 \
+	py3-psycopg2 \
+	uwsgi-http && \
+	addgroup -S www-data && adduser -S www-data -G www-data && \
+    pip3 install --upgrade pip && \
+    ln -s /usr/lib/uwsgi/python3_plugin.so /usr/lib/uwsgi/python_plugin.so
+
+#     && \
+#     pip3 install uwsgi
+
+COPY ./app /opt/app
+
+WORKDIR /opt/app/
+
+RUN pip3 install -r /opt/app/requirements.txt
+
+ENV DJANGO_ENV=prod
+ENV DOCKER_CONTAINER=1
+ENV PYTHONPATH=/usr/local/lib/python3.7/site-packages
+
+EXPOSE 8000
+
+# Specify the command to run when the image is run.
+#CMD ["uwsgi", "--ini", "/opt/app/uwsgi.ini"]
+#CMD ["uwsgi", "--plugins-dir", "/usr/lib/uwsgi/", "--plugin", "http,python", "--http", "0.0.0.0:8001", "--uid", "www-data", "--gid", "www-data", "--thunder-lock", "--chdir", "/opt/app/wutiko", "--wsgi-file", "wutiko/wsgi.py", "--master", "--processes", "4", "--threads", "2"]
+#CMD tail -f /dev/null
+
+CMD ["uwsgi", "--plugins-dir", "/usr/lib/uwsgi/", "--plugin", "http,python", "--http", "0.0.0.0:8001", "--uid", "www-data", "--gid", "www-data", "--thunder-lock", "--chdir", "/opt/app/wutiko", "--wsgi-file", "wutiko/wsgi.py", "--master", "--processes", "4", "--threads", "2", "--env", "DJANGO_SETTINGS_MODULE=wutiko.settings"]

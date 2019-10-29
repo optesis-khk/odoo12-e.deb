@@ -1,0 +1,41 @@
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<style>
+    .btn{
+  width:170px;
+  height:68px;
+  background-color: #d8d8d8;
+  box-shadow: 0 2px 1.5px 0 rgba(74, 74, 74, 0.36);
+}
+.btn:hover{
+  background-color: #0093D1;
+}
+g:hover{
+  fill:#ffffff;
+}
+</style>
+<body>
+        <button class="btn">
+    <svg width="37pt" height="41" viewBox="0 0 378.000000 411.000000" preserveAspectRatio="xMidYMid meet">
+    
+    <g class="g1" transform="translate(0.000000,411.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
+        <path d="M3285 3973 c-45 -23 -91 -70 -109 -111 -13 -32 -207 -551 -423 -1132
+        -36 -96 -128 -344 -205 -550 -77 -206 -182 -490 -234 -630 -102 -276 -125
+        -330 -131 -315 -2 6 -111 276 -241 600 l-238 590 -55 3 c-37 2 -59 -2 -66 -10
+        -6 -7 -83 -193 -171 -413 -247 -615 -305 -755 -311 -755 -3 0 -93 248 -200
+        551 -155 439 -200 554 -219 570 -24 18 -41 19 -286 17 l-261 -3 -3 -26 c-2
+        -17 152 -410 428 -1090 237 -584 439 -1075 448 -1091 14 -24 23 -28 59 -28 34
+        0 45 5 54 23 7 12 99 231 206 487 118 283 193 477 193 497 0 18 5 33 10 33 6
+        0 10 7 10 15 0 26 94 245 101 238 4 -5 120 -278 257 -608 137 -330 256 -615
+        266 -632 26 -52 80 -57 110 -11 8 13 328 863 711 1890 576 1546 694 1871 685
+        1888 -10 19 -21 20 -183 20 -137 -1 -178 -4 -202 -17z"></path>
+    </g>
+    </svg>
+        </button>
+</body>
+</html>

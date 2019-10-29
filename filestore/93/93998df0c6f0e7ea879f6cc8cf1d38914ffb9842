@@ -1,0 +1,415 @@
+import React from 'react';
+import { connect } from 'react-redux';
+import logo from '../../../public/assets/img/spinner.gif';
+import Form from "react-jsonschema-form";
+// import {CREATE_FORM_ENTRY} from '../actions/user';
+import {schema,InitialFields,TEXTAREA_ROWS_NUMBER} from './FormsConstants';
+import {DisabledFields} from './DisabledFields';
+import { UncontrolledAlert } from 'reactstrap';
+import { Parser } from 'html-to-react';
+import logo_spinner from '../../../public/assets/img/spinner.gif';
+
+var PROPERTIES={};
+var UISCHEMA={};
+var REQUIRED=[];
+var formData={};
+// function validate(formData, errors) {
+//   var KEYS=Object.keys(formData);
+//   KEYS.map((id)=>{
+//       if(!formData[`${id}`]){
+//         return errors[`${id}`].addError("Ce champ est obligatoire");
+//       }else if(formData[`${id}`].length===0){
+//        return  errors[`${id}`].__messages=["Ce champ est obligatoire"];
+//       }
+//   });
+//   return errors;
+// }
+class DraftForm extends React.Component{
+  constructor(props) {
+    super(props);
+    this.Json2Form=this.Json2Form.bind(this);
+    this.Submission=this.Submission.bind(this);
+    this.GetForm=this.GetForm.bind(this);
+    this.Draft=this.Draft.bind(this);
+    this.handleFormChanges=this.handleFormChanges.bind(this);
+    this.renderForm=this.renderForm.bind(this);
+    this.state={
+      email_to:'',
+      status:false,
+      spinner:false
+    }
+  }
+  renderForm(){
+    this.props.fields.map((field)=>{
+      if(field){
+        return(
+          this.Json2Form(field)
+        )
+      }
+    }); 
+  }
+  handleFormChanges(data){
+    var concerve_data=data.formData;
+    if(data.formData["40eb2eb0-144a-4fba-bc7b-d03050c34b51"]==="Dans une équipe"){
+      const old_required_fields=this.state.additional_required_fields.filter(obj=>obj!=="b5227707-54fd-4e20-ad18-283034a78b09");
+      old_required_fields.push("b5227707-54fd-4e20-ad18-283034a78b09");
+      this.setState({desabledFiels:this.state.desabledFiels.filter(obj=>obj!=="b5227707-54fd-4e20-ad18-283034a78b09"),additional_required_fields:old_required_fields});
+      this.renderForm();
+      formData=concerve_data;
+      const required_fields=REQUIRED.concat(this.state.additional_required_fields)
+      this.setState({REQUIRED:required_fields,PROPERTIES:PROPERTIES,UISCHEMA:UISCHEMA});
+      REQUIRED=[];
+      PROPERTIES={};
+      UISCHEMA={};
+    }
+    else if(data.formData["40eb2eb0-144a-4fba-bc7b-d03050c34b51"]!=="Dans une équipe"){
+      this.setState({desabledFiels:["b5227707-54fd-4e20-ad18-283034a78b09","2128602f-50ac-4ba2-a4c3-e77a12f2c688"],additional_required_fields:[]});
+      concerve_data["b5227707-54fd-4e20-ad18-283034a78b09"]=undefined;
+      concerve_data["2128602f-50ac-4ba2-a4c3-e77a12f2c688"]=undefined;
+      this.renderForm()
+      formData=concerve_data;
+      const required_fields=REQUIRED.concat(this.state.additional_required_fields)
+      this.setState({REQUIRED:required_fields,PROPERTIES:PROPERTIES,UISCHEMA:UISCHEMA});
+      REQUIRED=[];
+      PROPERTIES={};
+      UISCHEMA={};
+    }
+    
+    if(data.formData["b5227707-54fd-4e20-ad18-283034a78b09"]==="Autre"){
+      console.log(this.state.desabledFiels, this.state.additional_required_fields,this.state.show);
+      if(!this.state.show){
+      this.setState({desabledFiels:[],show:true,additional_required_fields:["b5227707-54fd-4e20-ad18-283034a78b09","2128602f-50ac-4ba2-a4c3-e77a12f2c688"], show:true});
+      this.renderForm();
+      formData=concerve_data;
+      const required_fields=REQUIRED.concat(["b5227707-54fd-4e20-ad18-283034a78b09","2128602f-50ac-4ba2-a4c3-e77a12f2c688"])
+      this.setState({REQUIRED:required_fields,PROPERTIES:PROPERTIES,UISCHEMA:UISCHEMA,desabledFiels:[]});
+      REQUIRED=[];
+      PROPERTIES={};
+      UISCHEMA={};
+      }
+    }else{
+       console.log("Second")
+       concerve_data["2128602f-50ac-4ba2-a4c3-e77a12f2c688"]=undefined;
+       if(data.formData["40eb2eb0-144a-4fba-bc7b-d03050c34b51"]==="Dans une équipe"){
+         this.setState({desabledFiels:["2128602f-50ac-4ba2-a4c3-e77a12f2c688"],additional_required_fields:["b5227707-54fd-4e20-ad18-283034a78b09"]});
+       }else{
+        this.setState({desabledFiels:["b5227707-54fd-4e20-ad18-283034a78b09","2128602f-50ac-4ba2-a4c3-e77a12f2c688"],additional_required_fields:[]});
+       }
+       this.renderForm();
+       formData=concerve_data;
+       const required_fields=REQUIRED.concat(this.state.additional_required_fields)
+       this.setState({REQUIRED:required_fields,PROPERTIES:PROPERTIES,UISCHEMA:UISCHEMA,show:false});
+       REQUIRED=[];
+       PROPERTIES={};
+       UISCHEMA={};
+    }
+  }
+  Draft(e){
+    var virtual_state={
+        email_to:'',
+        status:false,
+      }
+      const data=this.formulaire.state.formData;
+      var fields=[];
+      this.props.fields.map((field)=>{
+       if(field.field_id.field_type!='Page break'){
+        if(typeof data[`${field.field_id.id}`]!='object'){
+          if(field.field_id.field_type=='Email' && !virtual_state.status){
+            virtual_state.status=true;
+            virtual_state.email_to=data[`${field.id}`]
+          }
+          return fields.push({value:data[`${field.field_id.id}`] ||"" ,field_id:field.field_id.id, label:field.field_id.label})
+        }
+        else{
+          var vall="";
+          data[`${field.field_id.id}`].map((val)=>{
+            if(val!==""){
+              return vall+=val+','
+            }
+          });
+          return fields.push({value:vall.trim().slice(0, -1),field_id:field.field_id.id, label:field.field_id.label})
+        }
+       }
+      });
+      this.props.createFormEntry(`forms/${this.props.formId}/fields/entries/${this.props.entryId}/admins/edit/?client=${this.props.clientId}`,'EDIT_FORM_ENTRY',{fields:fields})
+      // const entry_data={email_to:virtual_state.email_to};
+      // this.setState({spinner:true})
+      // this.props.createFormEntry('UPDATE_FORM_DRAFT_ENTRY', this.props.entryId,this.props.clientId,  this.props.formId,{fields:fields, is_submitted:"false"});
+      window.scrollTo(0,0)
+  }
+  GetForm(e){
+    var virtual_state={
+        email_to:'',
+        status:false,
+      }
+      const data=this.formulaire.state.formData;
+      var fields=[];
+      this.props.fields.map((field)=>{
+       if(field.field_id.field_type!='Page break'){
+        if(typeof data[`${field.field_id.id}`]!='object'){
+          if(field.field_id.field_type=='Email' && !virtual_state.status){
+            virtual_state.status=true;
+            virtual_state.email_to=data[`${field.field_id.id}`]
+          }
+          return fields.push({value:data[`${field.field_id.id}`]||"" ,field_id:field.field_id.id, label:field.field_id.label})
+        }
+        else{
+          var vall="";
+          data[`${field.field_id.id}`].map((val)=>{
+            if(val!==""){
+              return vall+=val+','
+            }
+          });
+          return fields.push({value:vall.trim().slice(0, -1),field_id:field.field_id.id, label:field.field_id.label})
+        }
+       }
+      });
+      this.setState({spinner:true})
+      this.props.createFormEntry('SAVE_FORM_ENTRY', this.props.entryId,this.props.clientId,  this.props.formId,{fields:fields, is_submitted:"true"});
+      window.scrollTo(0,0)     
+  }
+
+  Submission(formData){
+    var virtual_state={
+      email_to:'',
+      status:false,
+    }
+    const data=formData.formData;
+    var fields=[];
+    this.props.fields.map((field)=>{
+     if(field.field_id.field_type!='Page break'){
+      if(typeof data[`${field.field_id.id}`]!='object'){
+        if(field.field_id.field_type=='Email' && !virtual_state.status){
+          virtual_state.status=true;
+          virtual_state.email_to=data[`${field.field_id.id}`]
+        }
+        return fields.push({value:data[`${field.field_id.id}`]||"" ,field_id:field.field_id.id, label:field.field_id.label})
+      }
+      else{
+        var vall="";
+        data[`${field.field_id.id}`].map((val)=>{
+            if(val!==""){
+              return vall+=val+','
+            }
+        });
+        return fields.push({value:vall.trim().slice(0, -1),field_id:field.field_id.id, label:field.field_id.label})
+      }
+     }
+    });
+    this.props.createFormEntry(`forms/${this.props.formId}/fields/entries/${this.props.entryId}/admins/edit/?client=${this.props.clientId}`,'EDIT_FORM_ENTRY',{fields:fields})
+  }
+  Json2Form(fieldConfig){
+    const properties=InitialFields()[fieldConfig.field_id.field_type];
+    var parser= new Parser()
+    if(properties.type=='checkboxes'){
+      formData[fieldConfig.field_id.id]=fieldConfig.value.split(',');
+    }else{
+      formData[fieldConfig.field_id.id]=fieldConfig.value;
+    }
+    
+    if (fieldConfig.field_id.required){
+        REQUIRED.push(fieldConfig.field_id.id);
+      }
+  
+    if(properties.type=='email'){
+      PROPERTIES[fieldConfig.field_id.id]={
+        "type": "string",
+        "format": "email",
+        "title":fieldConfig.field_id.label,
+  
+      };
+       UISCHEMA[fieldConfig.field_id.id]={
+        "ui:placeholder":fieldConfig.field_id.placeholder_text,
+        "classNames":fieldConfig.field_id.style_class,
+        "ui:help":parser.parse(fieldConfig.field_id.help_text),
+        "ui:description":parser.parse(fieldConfig.field_id.description),
+        "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+      }
+    }
+    else if(properties.type=='date'){
+      PROPERTIES[fieldConfig.field_id.id]={
+        type:'string',
+        format: "date",
+        title:fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label
+      };
+      UISCHEMA[fieldConfig.field_id.id]={
+        "alt-date": {
+          "ui:widget": "alt-date"
+        },
+        "classNames":fieldConfig.field_id.style_class,
+        "ui:description":parser.parse(fieldConfig.field_id.description),
+        "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+      }
+  
+    }
+    else if(properties.type=='file'){
+      PROPERTIES[fieldConfig.field_id.id]={
+        "type": "string",
+        "format": "data-url",
+        "title":fieldConfig.field_id.label
+      }
+    }else if(properties.type=='tel'){
+      PROPERTIES[fieldConfig.field_id.id]={
+        type:properties.type,
+        title:fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label
+      };
+      UISCHEMA[fieldConfig.field_id.id]={
+        "ui:widget":properties.widget,
+        "ui:title":fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label,
+        "ui:placeholder":fieldConfig.field_id.placeholder_text,
+        "ui:help":parser.parse(fieldConfig.field_id.help_text),
+        "ui:description":parser.parse(fieldConfig.field_id.description),
+        "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+        "classNames":fieldConfig.field_id.style_class,
+  
+      }
+    }else if(properties.type=='checkboxes'){
+      PROPERTIES[fieldConfig.field_id.id]=
+      {
+        type: "array",
+        minItems: 1,
+        title: fieldConfig.field_id.label,
+        items: {
+          type: "string",
+          enum:  fieldConfig.field_id.choices.split(','),
+        },
+        uniqueItems: true
+      };
+      UISCHEMA[fieldConfig.field_id.id]={
+        "ui:widget":properties.widget,
+        "ui:help":parser.parse(fieldConfig.field_id.help_text),
+        "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+        "classNames":fieldConfig.field_id.style_class,
+        "ui:description":parser.parse(fieldConfig.field_id.description),
+      }
+    }else if(properties.type=='boolean'){
+      PROPERTIES[fieldConfig.field_id.id]={
+        title:fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label,
+        type: "string",
+        enum:  fieldConfig.field_id.choices.split(','),
+      };
+      UISCHEMA[fieldConfig.field_id.id]={
+        "ui:widget":"radio",
+        "ui:help":parser.parse(fieldConfig.field_id.help_text),
+        "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+        "classNames":fieldConfig.field_id.style_class,
+        "ui:description":parser.parse(fieldConfig.field_id.description),
+      }
+    }else if(properties.type=='select'){
+      PROPERTIES[fieldConfig.field_id.id]={
+        type:"string",
+        title:fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label,
+        "enum":fieldConfig.field_id.choices.split(',')
+      };
+      UISCHEMA[fieldConfig.field_id.id]={
+        "ui:placeholder":fieldConfig.field_id.placeholder_text,
+        "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+        "classNames":fieldConfig.field_id.style_class,
+      }
+    }else if(properties.type=='array'){
+  
+    }else{
+      PROPERTIES[fieldConfig.field_id.id]={
+        type:properties.type,
+        title:fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label
+      };
+      if(properties.widget==''){
+           UISCHEMA[fieldConfig.field_id.id]={
+            "ui:title":fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label,
+            "ui:placeholder":fieldConfig.field_id.placeholder_text,
+            "ui:help":parser.parse(fieldConfig.field_id.help_text),
+            "ui:description":parser.parse(fieldConfig.field_id.description),
+            "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+            "classNames":fieldConfig.field_id.style_class,
+          }
+        }else if(properties.widget=='textarea'){
+          UISCHEMA[fieldConfig.field_id.id]={
+            "ui:widget":properties.widget,
+            "ui:title":fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label,
+            "ui:placeholder":fieldConfig.field_id.placeholder_text,
+            "ui:help":parser.parse(fieldConfig.field_id.help_text),
+            "ui:description":parser.parse(fieldConfig.field_id.description),
+            "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+            "classNames":fieldConfig.field_id.style_class,
+            "ui:options": {
+              rows: TEXTAREA_ROWS_NUMBER
+            }
+          }
+
+        }
+        else{
+          UISCHEMA[fieldConfig.field_id.id]={
+            "ui:widget":properties.widget,
+            "ui:title":fieldConfig.field_id.label=""?fieldConfig.field_id.id:fieldConfig.field_id.label,
+            "ui:placeholder":fieldConfig.field_id.placeholder_text,
+            "ui:help":parser.parse(fieldConfig.field_id.help_text),
+            "ui:description":parser.parse(fieldConfig.field_id.description),
+            "ui:disabled":DisabledFields(fieldConfig.field_id, this.props.desabledFiels),
+            "classNames":fieldConfig.field_id.style_class,
+          }
+        }
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    this.setState({spinner:nextProps.spinner});
+    if(nextProps.spinner==false){
+      REQUIRED=[];
+    }
+ }
+componentDidMount(){
+  REQUIRED=[];
+  this.setState({spinner:this.props.spinner});
+}
+  render() {
+    this.props.fields.map((field)=>{
+      if(field){
+        return(
+          this.Json2Form(field)
+        )
+      }
+    });
+    schema['title']=this.props.title;
+    schema['description']="";
+    schema["properties"]=PROPERTIES;
+    schema["required"]=REQUIRED;
+    return(
+    <Form 
+    schema={schema} 
+    uiSchema={UISCHEMA} 
+    formData={formData} 
+    // onSubmit={this.Submission}
+    showErrorList={false}
+    ref={formulaire => { this.formulaire = formulaire; }}>
+        {this.props.success?<UncontrolledAlert color="success">{this.props.success}</UncontrolledAlert>:null}
+        {this.props.error?<UncontrolledAlert color="danger">{this.props.error}</UncontrolledAlert>:null}
+    {
+      this.state.spinner? <div className="text-center"><img  width={100} src={logo} className="Form-logo-spinner" alt="logo" /></div>
+      :
+      <div className="row col-md-12">
+        <div className="col-md-6">
+        {!this.props.edit_entry_spinner?<button className="btn btn-black form-full" onClick={()=>this.Draft()} id="form-submit" name="submit1">Modifier </button>:<div className="text-center"><img  width={100} src={logo_spinner} className="Form-logo-spinner" alt="logo" /></div>}
+        </div>
+      </div>
+    }
+    </Form> 
+    )
+  }
+}; 
+function mapStateToProps(state){
+  return {
+    spinner_status:state.dynamicform.spinner_status,
+    success: state.dynamicform.success,
+    error: state.dynamicform.error,
+    edit_entry_spinner:state.dynamicform.edit_entry_spinner,
+
+  }
+}
+export default connect(mapStateToProps, {})(DraftForm);
+
+
+
+
+
+
+
+   

@@ -1,0 +1,361 @@
+import { SHOW_GROUPSSIDEBAR } from '../actions/index';
+
+import { CREATE_GROUP_REQUEST, CREATE_GROUP_SUCCESS, CREATE_GROUP_FAILURE,
+  UPDATE_GROUP_REQUEST, UPDATE_GROUP_SUCCESS, UPDATE_GROUP_FAILURE,
+  REMOVE_GROUP_REQUEST, REMOVE_GROUP_SUCCESS, REMOVE_GROUP_FAILURE,
+  GET_GROUP_FORM,
+  CREATE_GROUP_POST_REQUEST, CREATE_GROUP_POST_SUCCESS, CREATE_GROUP_POST_FAILURE,
+  UPDATE_GROUP_POST_REQUEST, UPDATE_GROUP_POST_SUCCESS, UPDATE_GROUP_POST_FAILURE,
+  REMOVE_GROUP_POST_REQUEST, REMOVE_GROUP_POST_SUCCESS, REMOVE_GROUP_POST_FAILURE,
+  GET_GROUP_POST,
+  CREATE_GROUP_COMMENT_REQUEST, CREATE_GROUP_COMMENT_SUCCESS, CREATE_GROUP_COMMENT_FAILURE,
+  UPDATE_GROUP_COMMENT_REQUEST, UPDATE_GROUP_COMMENT_SUCCESS, UPDATE_GROUP_COMMENT_FAILURE,
+  REMOVE_GROUP_COMMENT_REQUEST, REMOVE_GROUP_COMMENT_SUCCESS, REMOVE_GROUP_COMMENT_FAILURE,
+  CREATE_GROUP_INVITATION_REQUEST, CREATE_GROUP_INVITATION_SUCCESS, CREATE_GROUP_INVITATION_FAILURE,
+  GET_GROUP_COMMENT,
+  GET_GROUP_LIST, UPDATE_GROUP_LIST, GET_GROUP_DETAILS, GET_GROUP_FEED, UPDATE_GROUP_FEED,
+  GET_GROUP_ADMIN_LIST_ALL, GET_GROUP_ADMIN_LIST_ONLINE, GET_GROUP_ADMIN_LIST_OFFLINE, 
+
+CREATE_SECTORS_REQUEST, CREATE_SECTORS_SUCCESS, CREATE_SECTORS_FAILURE, GET_GROUP_SECTORS,
+  CREATE_LANGUAGE_REQUEST, CREATE_LANGUAGE_SUCCESS, CREATE_LANGUAGE_FAILURE,
+GET_LANGUAGE_LEVELS, GET_LANGUAGE_LIST,
+  GET_GROUP_LANGUES,
+  GET_GROUP_POSITIONS,
+CREATE_POSITION_REQUEST,
+CREATE_POSITION_SUCCESS,
+CREATE_POSITION_FAILURE,
+GET_GROUP_SKILLS,
+CREATE_SKILLS_REQUEST,
+CREATE_SKILLS_SUCCESS,
+CREATE_SKILLS_FAILURE,
+GET_GROUP_EDUCATIONS,
+CREATE_EDUCATION_REQUEST,
+CREATE_EDUCATION_SUCCESS,
+SHOW_SUGGESTIONLIST,
+CREATE_EDUCATION_FAILURE,SHOW_GROUPLIST,
+} from '../actions/groups';
+
+
+// Posible status :
+// - creating
+// - available
+// - updating
+// - removing
+// - removed
+const initialState = {
+  list: [],
+  next: null,
+   groupitemlist: [],
+  suggestionlist: [],
+  hasMoreItems: true,
+  listsidebar :[],
+  status: null,
+  error: null,
+  data: {},
+  details: {},
+   sectors: {
+    status: null,
+    error: null,
+    group_sectors: [],
+  },
+  languages: {
+    status: null,
+    error: null,
+    group_langues: [],
+  },
+  positions: {
+    status: null,
+    error: null,
+    group_positions: [],
+  },
+    skills: {
+    status: null,
+    error: null,
+    group_skills: [],
+  },
+
+  educations: {
+    status: null,
+    error: null,
+    group_educations: [],
+  },
+  post: {
+    status: null,
+    error: null,
+    data: {},
+    },
+  postComment: {
+    status: null,
+    error: null,
+    data: {},
+    },
+  feed: {
+    list: [],
+    hasMoreItems: true,
+    next: null,
+  },
+  groupAdminAll: {
+    list: [],
+    count: 0,
+  },
+  groupAdminOnline: {
+    list: [],
+    count: 0,
+  },
+  groupAdminOffline: {
+    list: [],
+    count: 0,
+  },
+  groupInvitation: {
+    status: null,
+    error: null,
+  }
+}
+
+export function group(state = initialState, action){
+
+  switch(action.type) {
+
+     case SHOW_GROUPLIST:
+      return Object.assign({}, state, {groupitemlist: action.payload})
+
+ case SHOW_SUGGESTIONLIST:
+      return Object.assign({}, state, {suggestionlist: action.payload})
+
+    case GET_GROUP_LIST:
+      if(action.payload.next) {
+        return {...state, list: action.payload.results, next: action.payload.next, hasMoreItems: true}
+      } else {
+        return {...state, list: action.payload.results, next: null, hasMoreItems: false}
+      }
+
+    case UPDATE_GROUP_LIST:
+      if(action.payload.next) {
+        return {...state, list: state.list.concat(action.payload.results), next: action.payload.next, hasMoreItems: true}
+      } else {
+        return {...state, list: state.list.concat(action.payload.results), next: null, hasMoreItems: false}
+      }
+
+    case GET_GROUP_DETAILS:
+      return {...state, details: action.payload};
+
+    case SHOW_GROUPSSIDEBAR:
+      return {...state, listsidebar: action.payload}
+
+
+    case CREATE_GROUP_REQUEST:
+      return {...state, status: 'creating', error: null};
+
+    case CREATE_GROUP_SUCCESS:
+      return {...state,  status: 'available', error: null};
+
+    case CREATE_GROUP_FAILURE:
+      return {...state, status: 'creating', error: action.payload.error || action.payload.message};
+
+
+    case UPDATE_GROUP_REQUEST:
+      return {...state, status: 'updating', error: null};
+
+    case UPDATE_GROUP_SUCCESS:
+      return {...state,  status: 'available', error: null};
+
+    case UPDATE_GROUP_FAILURE:
+      return {...state, status: 'updating', error: action.payload.error || action.payload.message};
+
+
+    case REMOVE_GROUP_REQUEST:
+      return {...state, status: 'removing', error: null};
+
+    case REMOVE_GROUP_SUCCESS:
+      return {...state,  status: 'removed', error: null};
+
+    case REMOVE_GROUP_FAILURE:
+      return {...state, status: 'removing', error: action.payload.error || action.payload.message};
+
+
+    case GET_GROUP_FORM:
+      return {...state, data: action.payload};
+
+
+    case GET_GROUP_ADMIN_LIST_ALL:
+      return {...state, groupAdminAll: {...state.groupAdminAll, list: action.payload.results, count: action.payload.count}}
+
+    case GET_GROUP_ADMIN_LIST_ONLINE:
+      return {...state, groupAdminOnline: {...state.groupAdminOnline, list: action.payload.results, count: action.payload.count}}
+
+    case GET_GROUP_ADMIN_LIST_OFFLINE:
+      return {...state, groupAdminOffline: {...state.groupAdminOffline, list: action.payload.results, count: action.payload.count}}
+
+
+    case CREATE_GROUP_POST_REQUEST:
+      return {...state, post: {...state.post, status:'creating', error: null}};
+
+    case CREATE_GROUP_POST_SUCCESS:
+      return {...state, post: {...state.post, status: 'available', error: null}};
+
+    case CREATE_GROUP_POST_FAILURE:
+      return {...state, post: {...state.post, status: 'creating', error: action.payload.error || action.payload.message}};
+
+
+    case UPDATE_GROUP_POST_REQUEST:
+      return {...state, post: {...state.post, status:'updating', error: null}};
+
+    case UPDATE_GROUP_POST_SUCCESS:
+      return {...state, post: {...state.post, status: 'available', error: null, data: {}}};
+
+    case UPDATE_GROUP_POST_FAILURE:
+      return {...state, post: {...state.post, status: 'updating', error: action.payload.error || action.payload.message}};
+
+
+    case REMOVE_GROUP_POST_REQUEST:
+      return {...state, post: {...state.post, status:'removing', error: null}};
+
+    case REMOVE_GROUP_POST_SUCCESS:
+      return {...state, post: {...state.post, status: 'removed', error: null}};
+
+    case REMOVE_GROUP_POST_FAILURE:
+      return {...state, post: {...state.post, status: 'removing', error: action.payload.error || action.payload.message}};
+
+    case GET_GROUP_POST:
+      return {...state, post: {...state.post, data: action.payload}};
+
+
+    case CREATE_GROUP_COMMENT_REQUEST:
+      return {...state, postComment: {...state.postComment, status:'creating', error: null}};
+
+    case CREATE_GROUP_COMMENT_SUCCESS:
+      return {...state, postComment: {...state.postComment, status: 'available', error: null}};
+
+    case CREATE_GROUP_COMMENT_FAILURE:
+      return {...state, postComment: {...state.postComment, status: 'creating', error: action.payload.error || action.payload.message}};
+
+
+    case UPDATE_GROUP_COMMENT_REQUEST:
+      return {...state, postComment: {...state.postComment, status:'updating', error: null}};
+
+    case UPDATE_GROUP_COMMENT_SUCCESS:
+      return {...state, postComment: {...state.postComment, status: 'available', error: null, data: {}}};
+
+    case UPDATE_GROUP_COMMENT_FAILURE:
+      return {...state, postComment: {...state.postComment, status: 'updating', error: action.payload.error || action.payload.message}};
+
+
+    case REMOVE_GROUP_COMMENT_REQUEST:
+      return {...state, postComment: {...state.postComment, status:'removing', error: null}};
+
+    case REMOVE_GROUP_COMMENT_SUCCESS:
+      return {...state, postComment: {...state.postComment, status: 'removed', error: null}};
+
+    case REMOVE_GROUP_COMMENT_FAILURE:
+      return {...state, postComment: {...state.postComment, status: 'removing', error: action.payload.error || action.payload.message}};
+
+
+    case GET_GROUP_COMMENT:
+      return {...state, postComment: {...state.postComment, data: action.payload}};
+
+
+    case GET_GROUP_FEED:
+      if(action.payload.next) {
+        return {...state, feed: {...state.feed, list: action.payload.results, next: action.payload.next, hasMoreItems: true}}
+      } else {
+        return {...state, feed: {...state.feed, list: action.payload.results, next: null, hasMoreItems: false}}
+      }
+
+    case UPDATE_GROUP_FEED:
+      if(action.payload.next) {
+        return {...state, feed: {...state.feed, list: state.feed.list.concat(action.payload.results), next: action.payload.next, hasMoreItems: true}}
+      } else {
+        return {...state, feed: {...state.feed, list: state.feed.list.concat(action.payload.results), next: null, hasMoreItems: false}}
+      }
+
+
+    case CREATE_GROUP_INVITATION_REQUEST:
+      return {...state, groupInvitation: {...state.groupInvitation, status: 'creating', error: null }}
+
+    case CREATE_GROUP_INVITATION_SUCCESS:
+      return {...state, groupInvitation: {... state.groupInvitation, status: 'available', error: null }}
+
+    case CREATE_GROUP_INVITATION_FAILURE:
+      return {...state, groupInvitation: {...state.groupInvitation, status: 'creating', error: action.payload.error || action.payload.message }}
+
+
+
+
+      case CREATE_SECTORS_REQUEST:
+      return {...state, sectors: {...state.sectors, status:'creating', error: null}};
+
+    case CREATE_SECTORS_SUCCESS:
+      return {...state, sectors: {...state.sectors, status: 'available', error: null}};
+
+    case CREATE_SECTORS_FAILURE:
+      return {...state, sectors: {...state.sectors, status: 'creating', error: action.payload.error || action.payload.message}};
+
+    case GET_GROUP_SECTORS:
+      return {...state, sectors: {...state.sectors, group_sectors: action.payload.results}};
+
+
+      case CREATE_POSITION_REQUEST:
+      return {...state, positions: {...state.positions, status:'creating', error: null}};
+
+    case CREATE_POSITION_SUCCESS:
+      return {...state, positions: {...state.positions, status: 'available', error: null}};
+
+    case CREATE_POSITION_FAILURE:
+      return {...state, positions: {...state.positions, status: 'creating', error: action.payload.error || action.payload.message}};
+
+    case GET_GROUP_POSITIONS:
+      return {...state, positions: {...state.positions, group_positions: action.payload.results}};
+
+    
+    case CREATE_SKILLS_REQUEST:
+      return {...state, skills: {...state.skills, status:'creating', error: null}};
+
+    case CREATE_SKILLS_SUCCESS:
+      return {...state, skills: {...state.skills, status: 'available', error: null}};
+
+    case CREATE_SKILLS_FAILURE:
+      return {...state, skills: {...state.skills, status: 'creating', error: action.payload.error || action.payload.message}};
+
+    case GET_GROUP_SKILLS:
+      return {...state, skills: {...state.skills, group_skills: action.payload.results}};
+
+  
+   
+    case CREATE_EDUCATION_REQUEST:
+      return {...state, educations: {...state.educations, status:'creating', error: null}};
+
+    case CREATE_EDUCATION_SUCCESS:
+      return {...state, educations: {...state.educations, status: 'available', error: null}};
+
+    case CREATE_EDUCATION_FAILURE:
+      return {...state, educations: {...state.educations, status: 'creating', error: action.payload.error || action.payload.message}};
+
+    case GET_GROUP_EDUCATIONS:
+      return {...state, educations: {...state.educations, group_educations: action.payload.results}};
+
+  
+ 
+ 
+
+    case CREATE_LANGUAGE_REQUEST:
+      return {...state, languages: {...state.languages, status:'creating', error: null}};
+
+    case CREATE_LANGUAGE_SUCCESS:
+      return {...state, languages: {...state.languages, status: 'available', error: null}};
+
+    case CREATE_LANGUAGE_FAILURE:
+      return {...state, languages: {...state.languages, status: 'creating', error: action.payload.error || action.payload.message}};
+
+    case GET_LANGUAGE_LIST:
+      return {...state, languages: {...state.languages, list: action.payload }}
+
+    case GET_LANGUAGE_LEVELS:
+      return {...state, languages: {...state.languages, levelList: action.payload.results}}
+
+    case GET_GROUP_LANGUES:
+      return {...state, languages: {...state.languages, group_langues: action.payload.results}}
+
+    default:
+      return state;
+   }
+}

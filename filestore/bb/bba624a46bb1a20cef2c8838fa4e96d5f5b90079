@@ -1,0 +1,57 @@
+
+import {GET_FORM,GET_FORM_FAILURE,GET_FORM_SUCCESS,
+  CREATE_FORM_ENTRIE,CREATE_FORM_ENTRIE_SUCCESS,CREATE_FORM_ENTRIE_FAILURE,
+  SUBMIT_FORM,SUBMIT_FORM_SUCCESS,SUBMIT_FORM_FAILURE,
+ } from '../actions/user';
+
+const initialState={
+ title:'',
+ entrie:'',
+ success:'',
+ error:'',
+ fields:[],
+ submit_response:{},
+ form_builder:{
+   error: null,
+   schema: {
+     type: "object",
+     title: "Untitled form",
+     description: "Enter some description for your form here",
+     properties: {}
+   },
+   uiSchema: {
+     "ui:order": []
+   },
+   formData: {},
+   currentIndex: 0
+ }
+,
+spinner_status:false
+}
+
+export function dynamicform (state=initialState, action){
+ switch(action.type){
+   case 'EMPTY_FORM_FIELDS':
+     return{...state,title:action.payload.title, fields: [], spinner_status:true}
+   case GET_FORM:
+      return{...state,title:action.payload.title, fields: action.payload.fields, spinner_status:false }
+   case GET_FORM_SUCCESS:
+      return {...state, success: action.payload.message, error:'', spinner_status:false}
+   case GET_FORM_FAILURE:
+       return {...state, error: action.payload.error, success:'', spinner_status:false}
+   case CREATE_FORM_ENTRIE:
+      return {...state, entrie:action.payload.id}
+   case CREATE_FORM_ENTRIE_SUCCESS:
+      return {...state, success: action.payload.success, error:'', spinner_status:true}
+   case CREATE_FORM_ENTRIE_FAILURE:
+      return {...state, error: action.payload.error, success:'', spinner_status:false}
+   case SUBMIT_FORM:
+      return {...state,submit_response:action.payload, spinner_status:false}
+   case SUBMIT_FORM_SUCCESS:
+        return {...state, success: action.payload.message, error:'', spinner_status:false}
+   case SUBMIT_FORM_FAILURE:
+        return {...state, error: action.payload.error, success:'', spinner_status:false}
+   default:
+      return state
+ }
+}

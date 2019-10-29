@@ -1,0 +1,10 @@
+
+.o_web_client .o_deprec_lines_toggler {
+  color: #dc6965;
+}
+.o_web_client .o_deprec_lines_toggler.o_is_posted {
+  color: #00a04a;
+}
+.o_web_client .o_deprec_lines_toggler.o_unposted {
+  color: #f0ad4e;
+}

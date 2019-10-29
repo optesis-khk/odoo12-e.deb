@@ -1,0 +1,35 @@
+// General and authentification
+
+//export const CLIENT_ID = 'cN68IW5NQDm86yOi25bCjaPaJ6zS5PQBddKlPT3l';
+
+
+export const CLIENT_ID = 'eSfTzDSZkakzBxyX2FnvCVPpGAhArRSFOOKVkJds';
+// export const FormId_Adhesion = '1b21fd8f-9785-4879-8301-9c9fe84f652d';
+export const FormId_Contact = 'f82333bd-5ad7-47f4-8647-c51b19989f2f';
+export const FormId_Participation = '9b11915f-138a-4c5c-b1ef-9494bc4560ce';
+
+const HOMEPAGE_URL = 'http://localhost:3000';
+//  const HOMEPAGE_URL = 'https://semimarathonsomone.org';
+//const HOMEPAGE_URL = 'http://optesis.wutiko.com';
+
+const ACCOUNT_SERVER_URL = 'https://accounts.wutiko.com';
+export const LOGOUT_URL = `${ACCOUNT_SERVER_URL}/en/authen/logout/${HOMEPAGE_URL}`;
+export const GET_TOKEN_URL = `${ACCOUNT_SERVER_URL}/fr/login/?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${HOMEPAGE_URL}`;
+
+export const RESULTS_PER_PAGE = 20;
+export const API_BASE_URL = 'https://api.wutiko.com';
+export const DEFAULT_REQUEST_TIMEOUT = 50000;
+export const DEFAULT_AXIOS_PARAMS = {
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  timeout: DEFAULT_REQUEST_TIMEOUT,
+};
+
+
+export const LANGUAGE_LIST = ['en', 'fr'];
+
+// Development params
+
+export const DEBUG = true;
+export const LANGUAGE_DEBUG = false; // allow to know which i18n keys are missing, but messes the language change

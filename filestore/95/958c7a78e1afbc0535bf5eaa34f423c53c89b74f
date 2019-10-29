@@ -1,0 +1,60 @@
+import { ARTICLE_LIST , BLOC_LIST, UPDATE_BLOC_LIST, RAISON_LIST, PARTENAIRES_LIST,ARTICLE_DETAILS, PUB_DETAILS, JOB_LIST,JOB_DETAILS } from '../actions/user'
+
+const initialState = {
+  ArticleDetails :{},
+  PubDetails :{},
+  JobDetails :{job_contract_type_id:{}},
+  list: [],
+  listjob: [],
+  listRaison: [],
+  Partenaireslist: [],
+  listBloc :[],
+  next: null,
+  hasMoreItems: true,
+ 
+}
+
+export function article (state = initialState, action) {
+
+  switch (action.type) {
+
+  case ARTICLE_DETAILS:
+      return {...state, ArticleDetails: action.payload};
+
+  case JOB_DETAILS:
+      return {...state, JobDetails: action.payload};
+
+  case PUB_DETAILS:
+      return {...state, PubDetails: action.payload};
+
+  case PARTENAIRES_LIST:
+         return Object.assign({}, state, {Partenaireslist: action.payload.results})
+
+  case JOB_LIST:
+         return Object.assign({}, state, {listjob: action.payload.results})
+
+  case RAISON_LIST:
+         return Object.assign({}, state, {listRaison: action.payload})
+
+  case ARTICLE_LIST:
+         return Object.assign({}, state, {list: action.payload})
+
+  case BLOC_LIST:
+         return Object.assign({}, state, {listBloc: action.payload.results})
+
+    case UPDATE_BLOC_LIST:
+      if(action.payload.next) {
+        return {...state, listBloc: state.listBloc.concat(action.payload.results), next: action.payload.next, hasMoreItems: true}
+      } else {
+        return {...state, listBloc: state.listBloc.concat(action.payload.results), next: null, hasMoreItems: false}
+      }
+
+   
+
+
+    default:
+      return state
+  }
+}
+
+   

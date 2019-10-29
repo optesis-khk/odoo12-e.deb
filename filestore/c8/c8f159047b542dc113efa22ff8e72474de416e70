@@ -1,0 +1,188 @@
+    Installation de l'api
+
+1. Installation de l'environnement virtuel
+
+1.1 Installation de packages(depedences) Python
+sudo apt-get install python3-pip python3-dev libxml2-dev libxslt1-dev antiword unrtf poppler-utils pstotext tesseract-ocr flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libreoffice binutils libproj-dev gdal-bin 
+
+1.2. Création et l’activation de  l'environnement
+pip3 install virtualenv
+mkdir /back-dev/
+mkdir /back-dev/www/api.wutiko.com
+cd /back-dev/www/api.wutiko.com
+mkdir venv conf src logs tmp
+virtualenv -p python3 /back-dev/www/api.wutiko.com/venv 
+source /back-dev/www/api.wutiko.com/venv/bin/activate
+cd /back-dev/www/api.wutiko.com/src/wutiko
+
+2. Installation de depedences de Django
+
+pip3 install -r wutiko/files/requirements/requirements_1.11.20.txt
+
+3. Installing Geospatial libraries(https://docs.djangoproject.com/en/1.11/ref/contrib/gis/install/geolibs/)
+3.1. GEOS install
+wget http://download.osgeo.org/geos/geos-3.6.0.tar.bz2
+tar xjf geos-3.6.0.tar.bz2
+cd geos-3.6.0
+./configure
+make
+sudo make install
+cd ..
+
+3.2. PROJ.4 Install
+
+wget http://download.osgeo.org/proj/proj-4.9.1.tar.gz
+wget http://download.osgeo.org/proj/proj-datumgrid-1.5.tar.gz
+tar xzf proj-4.9.1.tar.gz
+cd proj-4.9.1/nad
+tar xzf ../../proj-datumgrid-1.5.tar.gz
+cd ..
+
+./configure
+make
+sudo make install
+cd ..
+
+3.3. GDAL Install
+
+wget http://download.osgeo.org/gdal/2.1.0/gdal-2.1.0.tar.gz
+tar xzf gdal-2.1.0.tar.gz
+cd gdal-2.1.0
+./configure
+make 
+sudo make install
+cd ..
+
+
+4. Configuration of Celery, Rabbitmq and Supervisor on the server
+
+1. How to Use Celery and RabbitMQ with Django
+
+1.1.Install Celery
+pip3 install Celery
+1.2.Install rabbitmq-server with depedences
+
+1.2.1. Install Erlang
+sudo apt-get install -y software-properties-common
+wget https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+sudo dpkg -i erlang-solutions_1.0_all.deb
+sudo apt-get update
+sudo apt-get install erlang erlang-nox
+
+1.2.2. Install rabbitmq
+sudo add-apt-repository 'deb http://www.rabbitmq.com/debian/ testing main'
+wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install rabbitmq-server
+
+1.3. Then enable and start the RabbitMQ service:
+
+systemctl enable rabbitmq-server
+systemctl start rabbitmq-server
+
+
+1.4.Check the status to make sure everything is running smooth:
+systemctl status rabbitmq-server
+
+# 4.5 Configuration
+1. Define the following parameter in your settings common.py (settings)
+
+CELERY_BROKER_URL = 'amqp://wutiko_dev_user:wutikodevpasser@172.16.32.20/wutiko-dev-vhost'
+
+2. Create virtual host
+sudo rabbitmqctl add_vhost wutiko-dev-vhost
+
+3. Create custom user with password
+sudo rabbitmqctl add_user wutiko_dev_user wutikodevpasser
+
+4. Set permissions(donne au vhost tous les droits au user)
+sudo rabbitmqctl set_permissions -p wutiko-dev-vhost wutiko_dev_user ".*" ".*" ".*"
+
+
+5. Restart rabbitmq server to make sure the changes take effect and made modifications to tasks.py:
+systemctl start rabbitmq-server
+
+6. Configuration de supervisor
+
+sudo apt-get install supervisor
+
+1. Comme ce fichier existe déjà sur le 20 il faut récuperer son contenu et le mettre sur le nouveau serveur
+
+vi /etc/supervisor/conf.d/wutiko-celery.conf
+
+[program:wutiko-celery]
+command=/home/back-dev/www/api.wutiko.com/venv/bin/celery worker --app=wutiko --loglevel=INFO --without-gossip --without-mingle --without-heartbeat -Ofair
+directory=/home/back-dev/www/api.wutiko.com/src/wutiko
+user=root
+numprocs=1
+stdout_logfile=/home/back-dev/www/api.wutiko.com/src/logs/celery.log
+stderr_logfile=/home/back-dev/www/api.wutiko.com/src/logs/celery.log
+autostart=true
+autorestart=true
+startsecs=10
+
+; Need to wait for currently executing tasks to finish at shutdown.
+; Increase this if you have very long running tasks.
+stopwaitsecs = 600
+
+stopasgroup=true
+
+; Set Celery priority higher than default (999)
+; so, if rabbitmq is supervised, it will start first.
+priority=1000
+
+et à la fin execute ces deux commandes l'une par l'une
+
+- supervisorctl reread
+- supervisorctl update
+
+Pour indexer les données
+
+python3 manage.py rebuild_index  --settings=wutiko.settings.development
+
+supervisorctl restart all
+
+1.5 Set the locale to UTF-8 for Python 3
+
+nano /etc/locale.gen
+locale-gen
+
+7. Script de démarrage de l’api2(créer un fichier django et y ajouter le contenu donné en bas)
+
+sudo vi /etc/init.d/django
+
+#!/bin/sh
+# chkconfig: 123456 90 10
+# Django start-stop
+#
+workdir=/home/back-dev/www/api.wutiko.com/src/wutiko
+start() {
+    cd $workdir
+    /home/back-dev/www/api.wutiko.com/venv/bin/python3 manage.py runserver --settings=wutiko.settings.development 10.7.8.21:8002 &
+    echo "Server started."
+}
+ 
+stop() {
+    pid=`ps -ef | grep '/home/back-dev/www/api.wutiko.com/venv/bin/python3 manage.py runserver --settings=wutiko.settings.development 10.7.8.21:8002' | awk '{ print $2 }'`
+    echo $pid
+    kill $pid
+    sleep 2
+    echo "Django Server stopped."
+}
+ 
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop   
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: /etc/init.d/django {start|stop|restart}"
+    exit 1
+esac
+exit 0

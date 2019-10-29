@@ -1,0 +1,95 @@
+Installation des outils de développement du back
+
+1. Création et l’activation  de  l'environnement
+
+apt-get install python3 python3-pip
+pip3 install virtualenv
+mkdir /back-dev/
+mkdir /back-dev/www/api.wutiko.com
+cd /back-dev/www/api.wutiko.com
+mkdir venv conf src logs tmp
+virtualenv -p python3 /back-dev/www/api.wutiko.com/venv 
+source /back-dev/www/api.wutiko.com/venv/bin/activate
+cd /back-dev/www/api.wutiko.com/src/wutiko
+
+2.  Installation de packages
+pip3 install -r wutiko/files/requirements/requirements_1.11.20.txt
+
+3. Script de démarrage de l’api2(créer un fichier django et y ajouter le contenu donné en bas)
+
+sudo vi /etc/init.d/django
+
+#!/bin/sh
+# chkconfig: 123456 90 10
+# Django start-stop
+#
+workdir=/home/back/www/api.wutiko.com/src/wutiko
+ 
+start() {
+        source /home/back/www/api.wutiko.com/venv/bin/activate
+    cd $workdir
+    /usr/bin/python3 manage.py runserver --settings=wutiko.settings.development 172.16.32.20:8002 &
+    echo "Server started."
+}
+ 
+stop() {
+    pid=`ps -ef | grep '[p]ython /home/back-dev/www/api.wutiko.com/src/wutiko/manage.py' | awk '{ print $2 }'`
+    echo $pid
+    kill $pid
+    sleep 2
+    echo "Django Server stopped."
+}
+ 
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop   
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: /etc/init.d/django {start|stop|restart}"
+    exit 1
+
+
+4. Configuration of Celery, Rabbitmq and Supervisor on the server
+
+1. How to Use Celery and RabbitMQ with Django
+1.1.Install Celery
+pip3 install Celery
+1.2.Install rabbitmq-server
+apt-get install -y erlang
+apt-get install rabbitmq-server
+1.3. Then enable and start the RabbitMQ service:
+systemctl enable rabbitmq-server
+systemctl start rabbitmq-server
+
+1.4.Check the status to make sure everything is running smooth:
+systemctl status rabbitmq-server
+
+4.5 Configuration
+1. Define the following parameter in your settings common.py (settings)
+
+CELERY_BROKER_URL = 'amqp://wutiko_user:wutikopassword@172.16.32.20/wutiko-vhost'
+
+2. Create virtual host
+sudo rabbitmqctl add_vhost wutiko-vhost'
+
+3. Create custom user with password
+sudo rabbitmqctl add_user wutiko_user wutikopassword
+
+4. Set permissions
+sudo rabbitmqctl set_permissions -p wutiko-vhost' wutiko_user ".*" ".*" ".*"
+
+5. Restart rabbitmq server to make sure the changes take effect and made modifications to tasks.py:
+systemctl start rabbitmq-server
+
+6. Configuration de supervisor
+
+1. Comme ce fichier existe déjà sur le 20 il faut récuperer son contenu et le mettre sur le nouveau serveur
+
+/etc/supervisor/conf.d/wutiko-celery.conf

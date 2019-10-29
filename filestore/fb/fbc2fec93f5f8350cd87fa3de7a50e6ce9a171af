@@ -1,0 +1,83 @@
+import React, { Component } from 'react'
+import { navbar, nav, navitem, menuitem, Dropdown, Col,Row, Button, NavDropdown,MenuItem ,Nav, NavItem} from 'react-bootstrap';
+import { Router, Route, Link, IndexRoute, hashHistory, browserHistory, DefaultRoute, IndexLink } from 'react-router'
+import $ from 'jquery';
+
+
+class SearchButton extends Component {
+constructor(props){
+    super(props);
+    this.state={
+      input_value:"",
+      show:false,
+      css:{
+        width:'1px',
+        display:'none'
+      },
+    }
+    this.handleOnKeyPress=this.handleOnKeyPress.bind(this);
+    this.handleOnClickButton=this.handleOnClickButton.bind(this);
+    this.handleShowSearch=this.handleShowSearch.bind(this);
+    this.handleChangeCss=this.handleChangeCss.bind(this)
+   }
+handleShowSearch(){
+  console.log(this.state.show);
+  this.setState({show:!this.state.show})
+  console.log(this.state.show);
+}
+handleChangeCss(){
+  this.setState({
+    css:{
+      display:'block',
+      width:'200px'
+    }
+  });
+  console.log("#####################################")
+}
+  handleOnClickButton(){
+    console.log(this.state.input_value)
+        browserHistory.push(`resultats-recherche?seach_keyword=${this.state.input_value}`)
+  }
+ handleOnKeyPress(e){
+  if (e.key==="Enter") {
+    browserHistory.push(`resultats-recherche?seach_keyword=${e.target.value}`)
+  }
+ }
+  render() {
+  
+
+    return (
+        <div className="attr-nav sm-no-margin sm-margin-70px-right xs-margin-65px-right">
+                         
+              <div className="search_btn ">
+
+                <form className="form-inline ml-auto iconbtn_search">
+                  <div className="md-form my-0 ">
+                    {/*<i className="fas fa-search fa-2x" onClick={this.handleShowSearch} ></i>*/}
+                    <input className="" type="text"  name="search" placeholder="" aria-label="Search" 
+                    onKeyPress={this.handleOnKeyPress} 
+                    onChange={(e)=>this.setState({input_value:e.target.value})}
+                    /> 
+                    <i className="fa fa-search" onClick={this.handleShowSearch} ></i>
+                    
+                  </div>
+    
+
+                  {/*<b  className="butn theme grey-hover search_btn"  
+                                                                onClick={this.handleOnClickButton}>Search</b>*/}
+              </form>
+{/*              <div className="search_btn">
+<form action="">
+  <input type="search" />
+  <i className="fa fa-search"></i>
+</form></div>
+*/}
+              </div>
+        </div>
+       
+        
+
+    )
+  }
+}
+export default SearchButton;

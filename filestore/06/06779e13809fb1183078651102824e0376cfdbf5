@@ -1,0 +1,18 @@
+import { combineReducers } from 'redux';
+import { reducer as formReducer } from 'redux-form';
+import { reducer as notificationMessages } from 'react-notification-system-redux';
+import { user } from './user';
+import { article } from './showList.js'
+import { group } from './groups'
+import { dynamicform } from './dynamicForm'
+
+const rootReducer = combineReducers({
+  user: user,
+   article: article,
+   group: group,
+   dynamicform: dynamicform,
+   form: formReducer,
+   notificationMessages: notificationMessages
+});
+
+export default rootReducer;

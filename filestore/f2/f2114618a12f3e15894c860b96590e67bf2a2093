@@ -1,0 +1,25 @@
+
+import axios from 'axios';
+import { browserHistory } from 'react-router';
+
+
+import { error as notifError } from 'react-notification-system-redux';
+
+import { logError, getHashUrlParameterByName } from '../utils';
+import { DEBUG, API_BASE_URL, DEFAULT_REQUEST_TIMEOUT } from '../config.js';
+export const SHOW_LIST = 'SHOW_LIST'
+
+export function ShowList(url) {
+    
+  return (dispatch, getState) => {
+    let instance = getState().user.blankAxiosInstance;
+
+    instance.get(url)
+    .then((response) => {
+      dispatch({ type: SHOW_LIST, payload: response.data.results })
+    })
+    .catch(function (error) {
+      console.log("error ShowList", url, error);
+    });
+  }
+}
