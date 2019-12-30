@@ -1,4 +1,0 @@
-export function DisabledFields(field, desabledFiels){
-    
-        return desabledFiels.indexOf(field.label)>=0
-}
